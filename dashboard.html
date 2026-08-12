@@ -6,7 +6,9 @@
 <title>Dashboard - Cash Khata</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#2563eb">
-<link rel="shortcut icon" href="./assets/logo.png" type="image/x-icon">
+<link rel="icon" type="image/png" href="./assets/logo.png">
+<link rel="shortcut icon" type="image/png" href="./assets/logo.png">
+<link rel="apple-touch-icon" href="./assets/logo.png">
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -135,6 +137,8 @@ a { text-decoration: none; }
 .ck-btn-primary:hover { background: var(--dark-blue); }
 .ck-btn-outline { background: #fff; border: 1.5px solid var(--border-color); color: var(--text-dark); }
 .ck-btn-outline:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+.ck-btn-success-soft { background: #f0fdf4; color: var(--success); }
+.ck-btn-success-soft:hover { background: #dcfce7; }
 
 .input-group-search { position: relative; }
 .input-group-search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
@@ -199,7 +203,6 @@ a { text-decoration: none; }
     .cash-balance-box { padding: 8px 12px; }
 }
 
-/* ============ DASHBOARD PAGE SPECIFIC ============ */
 #dashboardPage {
     display: flex; flex-direction: column;
     height: calc(100vh - var(--topbar-height) - 52px);
@@ -572,9 +575,18 @@ function timeAgo(ts) {
   return Math.floor(diff / 86400) + 'd ago';
 }
 
+function ckToast(icon, title) {
+  Swal.fire({ icon, title, toast: true, position: 'top-end', showConfirmButton: false, timer: 2200, timerProgressBar: true });
+}
+
+function updateCashBalanceUI(newBalance) {
+  document.getElementById('topCashBalance').textContent = money(newBalance);
+}
+
+const settingsRef = doc(db, 'settings', 'main');
+
 /* ============ SETTINGS (single doc "main") ============ */
 async function loadSettingsAndCash() {
-  const settingsRef = doc(db, 'settings', 'main');
   const settingsSnap = await getDoc(settingsRef);
   let businessName = 'Cash Khata';
   let cashBalance = 0;
@@ -583,7 +595,6 @@ async function loadSettingsAndCash() {
     businessName = d.business_name || 'Cash Khata';
     cashBalance = d.cash_balance || 0;
   } else {
-    // প্রথমবার হলে ডিফল্ট settings ডকুমেন্ট বানিয়ে নাও
     const { setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
     await setDoc(settingsRef, {
       business_name: 'Cash Khata',
@@ -595,7 +606,7 @@ async function loadSettingsAndCash() {
     });
   }
   document.getElementById('sidebarBusinessName').textContent = businessName;
-  document.getElementById('topCashBalance').textContent = money(cashBalance);
+  updateCashBalanceUI(cashBalance);
   return cashBalance;
 }
 
@@ -665,7 +676,6 @@ async function loadDashboardSummary(period) {
     getAllDocs('suppliers', 'name', 'asc')
   ]);
 
-  // COGS = প্রতিটি sale ডকুমেন্টে snapshot করা purchase_price * quantity
   let cogs = 0;
   salesRes.items.forEach((s) => {
     cogs += parseFloat(s.purchase_price || 0) * parseFloat(s.quantity || 0);
@@ -753,17 +763,6 @@ let currentChartType = 'sales';
 async function loadChartData(type, days) {
   const startDate = periodStartDate(String(days));
 
-  if (type === 'customer_due' || type === 'supplier_due') {
-    const collName = type === 'customer_due' ? 'customers' : 'suppliers';
-    const all = await getAllDocs(collName, 'due', 'desc');
-    const filtered = all.filter((x) => parseFloat(x.due || 0) > 0).slice(0, 10);
-    return {
-      labels: filtered.map((x) => x.name),
-      values: filtered.map((x) => parseFloat(x.due || 0)),
-      chartType: 'bar'
-    };
-  }
-
   let collName = 'sales';
   let sumField = 'total_amount';
   if (type === 'total_purchase') collName = 'purchases';
@@ -834,6 +833,17 @@ async function renderChart(type, days) {
 }
 
 function openChartModal(type) {
+  if (type === 'customer_due') {
+    document.getElementById('customerListOverlay').style.display = 'flex';
+    loadCustomerList();
+    return;
+  }
+  if (type === 'supplier_due') {
+    document.getElementById('supplierListOverlay').style.display = 'flex';
+    loadSupplierList();
+    return;
+  }
+
   currentChartType = type;
   const meta = cardMeta.find((c) => c.key === type);
   document.getElementById('chartModalTitle').textContent = meta ? meta.label : 'Chart';
@@ -878,9 +888,9 @@ document.getElementById('addCustomerForm').addEventListener('submit', async (e) 
     await addDocument('customers', { name, mobile, address, due: 0 });
     document.getElementById('addCustomerOverlay').style.display = 'none';
     document.getElementById('addCustomerForm').reset();
-    Swal.fire({ icon: 'success', title: 'Customer Added', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    ckToast('success', 'Customer added successfully');
   } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+    ckToast('error', err.message);
   }
 });
 
@@ -895,10 +905,196 @@ document.getElementById('addSupplierForm').addEventListener('submit', async (e) 
     await addDocument('suppliers', { name, mobile, address, due: 0 });
     document.getElementById('addSupplierOverlay').style.display = 'none';
     document.getElementById('addSupplierForm').reset();
-    Swal.fire({ icon: 'success', title: 'Supplier Added', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    ckToast('success', 'Supplier added successfully');
   } catch (err) {
-    Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+    ckToast('error', err.message);
   }
+});
+
+/* ============ CUSTOMER LIST MODAL ============ */
+let customersListCache = [];
+
+async function loadCustomerList(search = '') {
+  const tbody = document.getElementById('clTableBody');
+  tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">Loading...</td></tr>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'customers'), orderBy('due', 'desc')));
+    customersListCache = [];
+    snap.forEach((d) => customersListCache.push({ id: d.id, ...d.data() }));
+
+    let filtered = customersListCache;
+    if (search.trim() !== '') {
+      const s = search.trim().toLowerCase();
+      filtered = customersListCache.filter((c) => (c.name || '').toLowerCase().includes(s) || (c.mobile || '').includes(s));
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No data available</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((c) => `
+      <tr>
+        <td data-label="Name" style="font-weight:500;">${c.name}</td>
+        <td data-label="Mobile">${c.mobile}</td>
+        <td data-label="Due" style="font-weight:600;${c.due > 0 ? 'color:var(--danger);' : ''}">${money(c.due)}</td>
+        <td data-label="Action">${c.due > 0 ? `<button class="ck-btn ck-btn-success-soft" style="padding:6px 10px;font-size:11px;" data-clpay="${c.id}">Receive</button>` : '<span class="text-muted">—</span>'}</td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-clpay]').forEach((btn) => {
+      btn.addEventListener('click', () => openClPayment(customersListCache.find((x) => x.id === btn.dataset.clpay)));
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function openClPayment(c) {
+  document.getElementById('clPaymentCustomerId').value = c.id;
+  document.getElementById('clPaymentCustomerName').textContent = c.name;
+  document.getElementById('clPaymentCustomerDue').textContent = money(c.due);
+  document.getElementById('clPaymentAmount').value = '';
+  document.getElementById('clPaymentAmount').max = c.due;
+  document.getElementById('clPaymentOverlay').style.display = 'flex';
+}
+
+document.getElementById('clPaymentForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const customerId = document.getElementById('clPaymentCustomerId').value;
+  const amount = parseFloat(document.getElementById('clPaymentAmount').value) || 0;
+  if (amount <= 0) { ckToast('error', 'Amount must be greater than 0'); return; }
+
+  try {
+    const newCash = await runTransaction(db, async (transaction) => {
+      const customerRef = doc(db, 'customers', customerId);
+      const customerSnap = await transaction.get(customerRef);
+      if (!customerSnap.exists()) throw new Error('Customer not found');
+      const customer = customerSnap.data();
+
+      if (amount > customer.due) throw new Error('Payment amount cannot exceed Customer Due');
+
+      const settingsSnap = await transaction.get(settingsRef);
+      const currentCash = settingsSnap.exists() ? (settingsSnap.data().cash_balance || 0) : 0;
+      const newCashVal = currentCash + amount;
+
+      transaction.update(customerRef, { due: increment(-amount) });
+      transaction.update(settingsRef, { cash_balance: newCashVal });
+
+      const paymentRef = doc(collection(db, 'customer_payments'));
+      transaction.set(paymentRef, { customer_id: customerId, amount, created_at: serverTimestamp() });
+
+      return newCashVal;
+    });
+
+    ckToast('success', 'Payment received successfully');
+    document.getElementById('clPaymentOverlay').style.display = 'none';
+    updateCashBalanceUI(newCash);
+    loadCustomerList(document.getElementById('clSearchInput').value);
+  } catch (err) {
+    ckToast('error', err.message);
+  }
+});
+
+let clSearchTimer;
+document.getElementById('clSearchInput').addEventListener('input', function () {
+  clearTimeout(clSearchTimer);
+  const val = this.value;
+  clSearchTimer = setTimeout(() => loadCustomerList(val), 350);
+});
+
+/* ============ SUPPLIER LIST MODAL ============ */
+let suppliersListCache = [];
+
+async function loadSupplierList(search = '') {
+  const tbody = document.getElementById('slTableBody');
+  tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">Loading...</td></tr>`;
+  try {
+    const snap = await getDocs(query(collection(db, 'suppliers'), orderBy('due', 'desc')));
+    suppliersListCache = [];
+    snap.forEach((d) => suppliersListCache.push({ id: d.id, ...d.data() }));
+
+    let filtered = suppliersListCache;
+    if (search.trim() !== '') {
+      const s = search.trim().toLowerCase();
+      filtered = suppliersListCache.filter((sup) => (sup.name || '').toLowerCase().includes(s) || (sup.mobile || '').includes(s));
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">No data available</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map((sup) => `
+      <tr>
+        <td data-label="Name" style="font-weight:500;">${sup.name}</td>
+        <td data-label="Mobile">${sup.mobile}</td>
+        <td data-label="Due" style="font-weight:600;${sup.due > 0 ? 'color:var(--danger);' : ''}">${money(sup.due)}</td>
+        <td data-label="Action">${sup.due > 0 ? `<button class="ck-btn ck-btn-success-soft" style="padding:6px 10px;font-size:11px;" data-slpay="${sup.id}">Pay</button>` : '<span class="text-muted">—</span>'}</td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('[data-slpay]').forEach((btn) => {
+      btn.addEventListener('click', () => openSlPayment(suppliersListCache.find((x) => x.id === btn.dataset.slpay)));
+    });
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function openSlPayment(sup) {
+  document.getElementById('slPaymentSupplierId').value = sup.id;
+  document.getElementById('slPaymentSupplierName').textContent = sup.name;
+  document.getElementById('slPaymentSupplierDue').textContent = money(sup.due);
+  document.getElementById('slPaymentAmount').value = '';
+  document.getElementById('slPaymentAmount').max = sup.due;
+  document.getElementById('slPaymentOverlay').style.display = 'flex';
+}
+
+document.getElementById('slPaymentForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const supplierId = document.getElementById('slPaymentSupplierId').value;
+  const amount = parseFloat(document.getElementById('slPaymentAmount').value) || 0;
+  if (amount <= 0) { ckToast('error', 'Amount must be greater than 0'); return; }
+
+  try {
+    const newCash = await runTransaction(db, async (transaction) => {
+      const supplierRef = doc(db, 'suppliers', supplierId);
+      const supplierSnap = await transaction.get(supplierRef);
+      if (!supplierSnap.exists()) throw new Error('Supplier not found');
+      const supplier = supplierSnap.data();
+
+      if (amount > supplier.due) throw new Error('Payment amount cannot exceed Supplier Due');
+
+      const settingsSnap = await transaction.get(settingsRef);
+      const currentCash = settingsSnap.exists() ? (settingsSnap.data().cash_balance || 0) : 0;
+
+      if (amount > currentCash) throw new Error('Insufficient Cash Balance');
+
+      const newCashVal = currentCash - amount;
+      transaction.update(supplierRef, { due: increment(-amount) });
+      transaction.update(settingsRef, { cash_balance: newCashVal });
+
+      const paymentRef = doc(collection(db, 'supplier_payments'));
+      transaction.set(paymentRef, { supplier_id: supplierId, amount, created_at: serverTimestamp() });
+
+      return newCashVal;
+    });
+
+    ckToast('success', 'Payment made successfully');
+    document.getElementById('slPaymentOverlay').style.display = 'none';
+    updateCashBalanceUI(newCash);
+    loadSupplierList(document.getElementById('slSearchInput').value);
+  } catch (err) {
+    ckToast('error', err.message);
+  }
+});
+
+let slSearchTimer;
+document.getElementById('slSearchInput').addEventListener('input', function () {
+  clearTimeout(slSearchTimer);
+  const val = this.value;
+  slSearchTimer = setTimeout(() => loadSupplierList(val), 350);
 });
 
 /* ============ PERIOD SELECT ============ */

@@ -45,7 +45,7 @@ export default function UserFormModal({ isOpen, onClose, mode, targetUser, onSuc
           username,
           password,
           role,
-          isSelf: targetUser.uid === currentUser?.uid,
+          isSelf: targetUser.id === currentUser?.id,
           isCurrentUserAdmin: isAdmin,
         });
         showToast("success", "User updated successfully");

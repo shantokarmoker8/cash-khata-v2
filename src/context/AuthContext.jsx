@@ -1,43 +1,18 @@
 // src/context/AuthContext.jsx
 import { createContext, useEffect, useState } from "react";
-import {
-  loginWithUsername,
-  logoutUser,
-  fetchUserProfile,
-  subscribeToAuthChanges,
-} from "../services/authService";
+import { loginWithUsername, logoutUser, getStoredSession } from "../services/authService";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null); // { uid, username, full_name, role }
-  const [authLoading, setAuthLoading] = useState(true);  // প্রথমবার Firebase auth state resolve হওয়া পর্যন্ত true
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // পেজ রিফ্রেশ হলেও Firebase নিজে থেকেই session persist রাখে,
-    // এই listener দিয়ে সেই স্টেট React এ sync করা হচ্ছে
-    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
-      if (firebaseUser) {
-        const profile = await fetchUserProfile(firebaseUser.uid);
-        if (profile) {
-          setCurrentUser({
-            uid: firebaseUser.uid,
-            id: profile.id,
-            username: profile.username,
-            full_name: profile.full_name,
-            role: profile.role || "staff",
-          });
-        } else {
-          // Auth এ আছে কিন্তু Firestore এ profile নাই — invalid অবস্থা, লগ-আউট করে দাও
-          setCurrentUser(null);
-        }
-      } else {
-        setCurrentUser(null);
-      }
-      setAuthLoading(false);
-    });
-
-    return () => unsubscribe();
+    // পেজ লোড হওয়ার সাথে সাথে localStorage থেকে session restore করা হয়
+    const stored = getStoredSession();
+    setCurrentUser(stored);
+    setAuthLoading(false);
   }, []);
 
   async function login(username, password) {
@@ -46,8 +21,8 @@ export function AuthProvider({ children }) {
     return user;
   }
 
-  async function logout() {
-    await logoutUser();
+  function logout() {
+    logoutUser();
     setCurrentUser(null);
   }
 

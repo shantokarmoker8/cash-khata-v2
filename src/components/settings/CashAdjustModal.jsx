@@ -42,7 +42,7 @@ export default function CashAdjustModal({ isOpen, onClose }) {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await addCashTransaction({ type, amount, note, createdBy: currentUser?.uid });
+      await addCashTransaction({ type, amount, note, createdBy: currentUser?.id, });
       showToast("success", type === "add" ? "Cash added successfully" : "Cash withdrawn successfully");
       setAmount("");
       setNote("");

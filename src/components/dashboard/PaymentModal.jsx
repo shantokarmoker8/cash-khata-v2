@@ -30,14 +30,14 @@ export default function PaymentModal({ isOpen, onClose, type, entity, onSuccess 
         await receiveCustomerPayment({
           customerId: entity.id,
           amount,
-          createdBy: currentUser?.uid,
+          createdBy: currentUser?.id,
         });
         showToast("success", "Payment received successfully");
       } else {
         await makeSupplierPayment({
           supplierId: entity.id,
           amount,
-          createdBy: currentUser?.uid,
+          createdBy: currentUser?.id,
         });
         showToast("success", "Payment made successfully");
       }

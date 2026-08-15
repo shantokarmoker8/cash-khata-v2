@@ -86,7 +86,7 @@ export default function UsersList({ isOpen, onClose }) {
                     </td>
                     <td className="px-3.5 py-3">
                       <div className="flex items-center gap-1.5">
-                        {(isAdmin || u.uid === currentUser?.uid) && (
+                        {(isAdmin || u.id === currentUser?.id) && (
                           <button
                             type="button"
                             onClick={() => {

@@ -5,7 +5,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 /* ============ Tailwind v4 Theme Tokens ============
-   এগুলো ব্যবহার করলে ক্লাস হিসেবেও পাওয়া যাবে যেমন: bg-primary-blue, text-danger ইত্যাদি
+   এই ব্লকের প্রতিটা ভ্যারিয়েবল সরাসরি Tailwind utility class হিসেবে ব্যবহারযোগ্য।
+   যেমন: bg-primary-blue, text-text-dark, border-border-color, bg-body-bg ইত্যাদি
 */
 @theme {
   --color-primary-blue: #2563eb;
@@ -15,7 +16,7 @@
   --color-body-bg: #f4f7fe;
   --color-text-dark: #1e293b;
   --color-text-muted: #64748b;
-  --color-border-color: #e6ebf3;
+  --color-border-color: #e2e8f0;
   --color-success: #16a34a;
   --color-danger: #dc2626;
   --color-warning: #d97706;
@@ -24,8 +25,8 @@
 }
 
 /* ============ Legacy CSS Variables ============
-   পুরনো PHP কম্পোনেন্টের সাথে হুবহু মিল রাখতে var(--primary-blue) ফরম্যাটেও রাখা হলো,
-   কারণ ইনলাইন style বা কিছু কম্পোনেন্টে সরাসরি এই নামেই রেফার করা হবে।
+   কিছু জায়গায় (chart color, dynamic inline value) var(--primary-blue) ফরম্যাটে
+   সরাসরি রেফার করতে হবে বলে এটাও রাখা হলো — উপরের @theme এর মানের সাথে সবসময় sync রাখতে হবে
 */
 :root {
   --primary-blue: #2563eb;
@@ -35,7 +36,7 @@
   --body-bg: #f4f7fe;
   --text-dark: #1e293b;
   --text-muted: #64748b;
-  --border-color: #e6ebf3;
+  --border-color: #e2e8f0;
   --success: #16a34a;
   --danger: #dc2626;
   --warning: #d97706;
@@ -80,92 +81,45 @@ a {
 }
 
 /* ============ Reusable Component Classes ============
-   এগুলো পুরো অ্যাপে বহু জায়গায় বারবার ব্যবহৃত হবে বলে
-   utility class হিসেবে এখানে গ্লোবালি রাখা হলো (Tailwind @apply দিয়ে)
+   বারবার ব্যবহৃত হবে এমন প্যাটার্ন — Tailwind utility দিয়েই বেশিরভাগ কাজ চলবে,
+   কিন্তু এই কয়েকটা জটিল/নেস্টেড প্যাটার্ন গ্লোবাল ক্লাস হিসেবে রাখা হলো
+   যাতে প্রতিটা কম্পোনেন্টে লম্বা className না লিখতে হয়
 */
 .ck-card {
-  background: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 20px;
+  @apply bg-white border border-border-color rounded-[14px] p-5;
 }
 
 .ck-btn-primary {
-  background: var(--primary-blue);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.ck-btn-primary:hover {
-  background: var(--dark-blue);
+  @apply bg-primary-blue hover:bg-dark-blue text-white border-none rounded-[10px] px-[18px] py-2.5 text-[13px] font-semibold cursor-pointer transition-colors;
 }
 
 .ck-icon-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  @apply w-[30px] h-[30px] rounded-lg border-none inline-flex items-center justify-center cursor-pointer;
 }
 
 .ck-input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid var(--border-color);
-  border-radius: 10px;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-.ck-input:focus {
-  border-color: var(--primary-blue);
+  @apply w-full px-3.5 py-2.5 border-[1.5px] border-border-color rounded-[10px] text-[13px] outline-none transition-colors focus:border-primary-blue;
 }
 
 .ck-toggle-tabs {
-  display: flex;
-  background: #f1f5f9;
-  border-radius: 10px;
-  padding: 4px;
-  gap: 4px;
+  @apply flex bg-slate-100 rounded-[10px] p-1 gap-1;
 }
 .ck-toggle-tabs button {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 9px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  @apply flex-1 border-none bg-transparent py-2.5 rounded-lg text-xs font-medium cursor-pointer transition-all;
 }
 .ck-toggle-tabs button.active {
-  background: #fff;
-  color: var(--primary-blue);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  @apply bg-white text-primary-blue shadow-sm;
 }
 
 .badge-cash {
-  background: #f0fdf4;
-  color: #16a34a;
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 6px;
+  @apply bg-green-50 text-success text-[10px] px-2 py-1 rounded-md;
 }
 .badge-due {
-  background: #fff7ed;
-  color: #d97706;
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 6px;
+  @apply bg-orange-50 text-warning text-[10px] px-2 py-1 rounded-md;
+}
+
+.ck-modal-box {
+  @apply bg-white rounded-2xl p-6 w-full max-w-[460px] max-h-[90vh] overflow-y-auto;
 }
 
 /* ============ Skeleton Loading ============ */
@@ -175,28 +129,13 @@ a {
   animation: skeleton-loading 1.4s ease infinite;
   border-radius: 8px;
 }
-
-
-
 @keyframes skeleton-loading {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* ============ Modal Box ============ */
-.ck-modal-box {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  width: 100%;
-  max-width: 460px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-/* ============ Responsive Breakpoints ============
-   Sidebar/Topbar/BottomNav এর লেআউট আচরণ — component এ Tailwind
-   ক্লাস দিয়েও করা যাবে, কিন্তু var()-নির্ভর width গুলো এখানেই রাখা ভালো
+/* ============ Layout-specific Responsive Rules ============
+   Sidebar/Topbar/BottomNav — width/left-offset var()-নির্ভর হওয়ায় এখানেই রাখা হলো
 */
 @media (min-width: 992px) {
   .profile-name { display: block; }
@@ -216,18 +155,4 @@ a {
     border: 1px solid var(--border-color);
     border-radius: 12px;
   }
-}
-
-/* Login page input focus state */
-.ck-login-input:focus {
-  border-color: var(--primary-blue) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-@media (max-width: 767px) {
-  .login-left { display: none; }
-  .login-wrapper { border-radius: 16px; }
-  .login-right { padding: 40px 26px; }
-  .login-right h2,
-  .login-right p.subtitle { text-align: center; }
 }

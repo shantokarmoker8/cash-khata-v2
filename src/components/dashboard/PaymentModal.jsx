@@ -1,22 +1,46 @@
-// src/components/sales/EditSaleModal.jsx
+// src/components/dashboard/PaymentModal.jsx
 import { useState } from "react";
 import Modal from "../common/Modal";
 import { showToast } from "../common/Toast";
 import { formatCurrency } from "../../utils/formatCurrency";
-import { paySaleDue } from "../../services/salesService";
+import { receiveCustomerPayment } from "../../services/customerService";
+import { makeSupplierPayment } from "../../services/supplierService";
+import { useAuth } from "../../hooks/useAuth";
 
-export default function EditSaleModal({ isOpen, onClose, sale, onSuccess }) {
+/**
+ * type: "customer" | "supplier"
+ * entity: { id, name, due }
+ */
+export default function PaymentModal({ isOpen, onClose, type, entity, onSuccess }) {
+  const { currentUser } = useAuth();
   const [amount, setAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const isCustomer = type === "customer";
+  const title = isCustomer ? "Receive Payment" : "Make Payment";
+  const label = isCustomer ? "Customer" : "Supplier";
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!sale) return;
+    if (!entity) return;
 
     setSubmitting(true);
     try {
-      await paySaleDue({ saleId: sale.id, amount });
-      showToast("success", "Due paid successfully");
+      if (isCustomer) {
+        await receiveCustomerPayment({
+          customerId: entity.id,
+          amount,
+          createdBy: currentUser?.uid,
+        });
+        showToast("success", "Payment received successfully");
+      } else {
+        await makeSupplierPayment({
+          supplierId: entity.id,
+          amount,
+          createdBy: currentUser?.uid,
+        });
+        showToast("success", "Payment made successfully");
+      }
       setAmount("");
       onSuccess?.();
       onClose();
@@ -27,19 +51,16 @@ export default function EditSaleModal({ isOpen, onClose, sale, onSuccess }) {
     }
   }
 
-  if (!sale) return null;
+  if (!entity) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Pay Due" maxWidth="max-w-[380px]">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-[400px]">
       <form onSubmit={handleSubmit}>
         <p className="text-[13px] text-text-dark mb-1">
-          Product: <strong>{sale.product_name}</strong>
-        </p>
-        <p className="text-text-muted text-xs mb-1">
-          Customer: <strong>{sale.customer_name || "Walk-in Customer"}</strong>
+          {label}: <strong>{entity.name}</strong>
         </p>
         <p className="text-text-muted text-xs mb-4">
-          Due Amount: <span className="font-semibold text-danger">{formatCurrency(sale.due_amount)}</span>
+          Current Due: <span className="font-semibold text-danger">{formatCurrency(entity.due)}</span>
         </p>
 
         <label className="text-[13px] font-medium text-text-dark mb-1.5 block">Amount</label>
@@ -47,7 +68,6 @@ export default function EditSaleModal({ isOpen, onClose, sale, onSuccess }) {
           type="number"
           step="0.01"
           min="0.01"
-          max={sale.due_amount}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
@@ -63,7 +83,7 @@ export default function EditSaleModal({ isOpen, onClose, sale, onSuccess }) {
             Cancel
           </button>
           <button type="submit" disabled={submitting} className="ck-btn-primary flex-1 disabled:opacity-60">
-            {submitting ? "Paying..." : "Pay"}
+            {submitting ? "Saving..." : "Save"}
           </button>
         </div>
       </form>

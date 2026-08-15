@@ -18,7 +18,7 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-  const [errorKey, setErrorKey] = useState(0); // প্রতিবার নতুন error এ shake animation replay করার জন্য
+  const [errorKey, setErrorKey] = useState(0); // error আসলে key বদলে shake animation replay করার জন্য
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
@@ -37,76 +37,31 @@ export default function Login() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--light-blue)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
-      }}
-    >
+    <div className="min-h-screen bg-light-blue flex items-center justify-center p-5">
       <motion.div
-        id="loginWrapper"
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
-        className="login-wrapper"
-        style={{
-          display: "flex",
-          width: "100%",
-          maxWidth: 900,
-          background: "#ffffff",
-          borderRadius: 20,
-          overflow: "hidden",
-          boxShadow: "0 10px 40px rgba(37, 99, 235, 0.12)",
-        }}
+        className="flex w-full max-w-[900px] bg-white rounded-[20px] overflow-hidden shadow-[0_10px_40px_rgba(37,99,235,0.12)]"
       >
         {/* ============ Left Panel ============ */}
-        <div
-          className="login-left"
-          style={{
-            flex: 1,
-            background: "var(--primary-blue)",
-            color: "#ffffff",
-            padding: "50px 40px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "flex-start",
-          }}
-        >
-          <div
-            style={{
-              width: 70,
-              height: 70,
-              background: "rgba(255,255,255,0.15)",
-              borderRadius: 16,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 30,
-              marginBottom: 25,
-            }}
-          >
+        <div className="hidden md:flex flex-1 bg-primary-blue text-white p-10 flex-col justify-center items-start">
+          <div className="w-[70px] h-[70px] bg-white/15 rounded-2xl flex items-center justify-center text-3xl mb-6">
             <FaWallet />
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 12 }}>
-            Cash Khata
-          </h1>
-          <p style={{ fontSize: 14, opacity: 0.9, lineHeight: 1.7 }}>
+          <h1 className="text-[28px] font-bold mb-3">Cash Khata</h1>
+          <p className="text-sm opacity-90 leading-7">
             Manage your purchase, sales, stock, customer due, supplier due
             and daily expenses — all in one simple dashboard.
           </p>
         </div>
 
         {/* ============ Right Panel (Form) ============ */}
-        <div className="login-right" style={{ flex: 1, padding: "50px 40px" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 600, color: "var(--text-dark)", marginBottom: 6 }}>
+        <div className="flex-1 p-10 sm:p-10 max-sm:p-7">
+          <h2 className="text-2xl font-semibold text-text-dark mb-1.5">
             Welcome Back
           </h2>
-          <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 30 }}>
+          <p className="text-text-muted text-sm mb-7">
             Login to manage your business
           </p>
 
@@ -116,46 +71,20 @@ export default function Login() {
               initial={{ x: -10 }}
               animate={{ x: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              style={{
-                background: "#fef2f2",
-                color: "#dc2626",
-                padding: "10px 14px",
-                borderRadius: 8,
-                fontSize: 13,
-                marginBottom: 18,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
+              className="bg-red-50 text-danger px-3.5 py-2.5 rounded-lg text-[13px] mb-4.5 flex items-center gap-2"
             >
-              <FaCircleExclamation />
+              <FaCircleExclamation className="shrink-0" />
               <span>{errorMsg}</span>
             </motion.div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div>
-              <label
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-dark)",
-                  marginBottom: 6,
-                  display: "block",
-                }}
-              >
+              <label className="text-[13px] font-medium text-text-dark mb-1.5 block">
                 Username
               </label>
-              <div style={{ position: "relative", marginBottom: 20 }}>
-                <FaUser
-                  style={{
-                    position: "absolute",
-                    left: 16,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "var(--text-muted)",
-                  }}
-                />
+              <div className="relative mb-5">
+                <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
                   value={username}
@@ -163,41 +92,17 @@ export default function Login() {
                   placeholder="Enter username"
                   required
                   autoComplete="off"
-                  style={{
-                    width: "100%",
-                    padding: "12px 16px 12px 44px",
-                    border: "1.5px solid var(--border-color)",
-                    borderRadius: 10,
-                    fontSize: 14,
-                    outline: "none",
-                  }}
-                  className="ck-login-input"
+                  className="w-full pl-11 pr-4 py-3 border-[1.5px] border-border-color rounded-[10px] text-sm outline-none transition-colors focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10"
                 />
               </div>
             </div>
 
             <div>
-              <label
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-dark)",
-                  marginBottom: 6,
-                  display: "block",
-                }}
-              >
+              <label className="text-[13px] font-medium text-text-dark mb-1.5 block">
                 Password
               </label>
-              <div style={{ position: "relative", marginBottom: 20 }}>
-                <FaLock
-                  style={{
-                    position: "absolute",
-                    left: 16,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "var(--text-muted)",
-                  }}
-                />
+              <div className="relative mb-5">
+                <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="password"
                   value={password}
@@ -205,15 +110,7 @@ export default function Login() {
                   placeholder="Enter password"
                   required
                   autoComplete="off"
-                  style={{
-                    width: "100%",
-                    padding: "12px 16px 12px 44px",
-                    border: "1.5px solid var(--border-color)",
-                    borderRadius: 10,
-                    fontSize: 14,
-                    outline: "none",
-                  }}
-                  className="ck-login-input"
+                  className="w-full pl-11 pr-4 py-3 border-[1.5px] border-border-color rounded-[10px] text-sm outline-none transition-colors focus:border-primary-blue focus:ring-4 focus:ring-primary-blue/10"
                 />
               </div>
             </div>
@@ -222,29 +119,14 @@ export default function Login() {
               type="submit"
               disabled={loading}
               whileHover={!loading ? { y: -1 } : {}}
-              style={{
-                width: "100%",
-                padding: 13,
-                background: "var(--primary-blue)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
-                fontWeight: 600,
-                fontSize: 15,
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.7 : 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
+              className="w-full py-3.5 bg-primary-blue hover:bg-dark-blue text-white border-none rounded-[10px] font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
             >
               {loading ? (
                 <>
                   <motion.span
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
-                    style={{ display: "inline-flex" }}
+                    className="inline-flex"
                   >
                     <FaSpinner />
                   </motion.span>

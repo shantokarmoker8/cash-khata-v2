@@ -1,16 +1,10 @@
 // src/components/common/Loader.jsx
 import { motion } from "framer-motion";
 
-export default function Loader({ fullScreen = false, size = 36 }) {
+export default function Loader({ fullScreen = false, size = "w-9 h-9" }) {
   const spinner = (
     <motion.div
-      style={{
-        width: size,
-        height: size,
-        border: "3px solid #e6ebf3",
-        borderTopColor: "var(--primary-blue)",
-        borderRadius: "50%",
-      }}
+      className={`${size} rounded-full border-4 border-border-color border-t-primary-blue`}
       animate={{ rotate: 360 }}
       transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
     />
@@ -19,15 +13,7 @@ export default function Loader({ fullScreen = false, size = 36 }) {
   if (!fullScreen) return spinner;
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--body-bg)",
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-body-bg">
       {spinner}
     </div>
   );
